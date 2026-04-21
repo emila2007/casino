@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Vegas Slots</title>
+
+<style>
+    body {
+        background: radial-gradient(circle at top, #500 0%, #000 70%);
+        font-family: Arial, sans-serif;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .machine {
+        width: 500px;
+        padding: 25px;
+        border-radius: 20px;
+        background: #200;
+        border: 4px solid #ff0000;
+        box-shadow:
+            0 0 25px rgba(255,0,0,0.8),
+            inset 0 0 20px rgba(255,0,0,0.5);
+        text-align: center;
+        position: relative;
+    }
+
+    .title {
+        font-size: 34px;
+        font-weight: bold;
+        color: #ff4d4d;
+        text-shadow:
+            0 0 10px #ff0000,
+            0 0 20px #ff4d4d,
+            0 0 30px #ff0000;
+        margin-bottom: 15px;
+    }
+
+    .lights {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .light {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #330000;
+        box-shadow: 0 0 5px #000;
+    }
+
+    .light.on {
+        background: #ff3333;
+        box-shadow:
+            0 0 10px #ff0000,
+            0 0 20px #ff3333;
+    }
+
+    .slots {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .slot {
+        width: 120px;
+        height: 80px;
+        background: linear-gradient(145deg, #fff, #ccc);
+        border-radius: 12px;
+        border: 3px solid #ff6666;
+        color: #000;
+        font-size: 24px;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow:
+            inset 0 0 10px rgba(0,0,0,0.4),
+            0 0 10px rgba(255,0,0,0.5);
+    }
+
+    .slot.highlight {
+        border-color: gold;
+        box-shadow:
+            0 0 15px gold,
+            inset 0 0 10px rgba(0,0,0,0.6);
+    }
+
+    .bonus-box {
+        margin-top: 15px;
+        padding: 10px;
+        background: #111;
+        border-radius: 10px;
+        border: 2px solid #ff3333;
+        box-shadow: 0 0 10px rgba(255,0,0,0.5);
+    }
+
+    .bonus-slot {
+        margin-top: 5px;
+        width: 160px;
+        height: 50px;
+        background: #eee;
+        color: #000;
+        border-radius: 8px;
+        border: 3px solid #ff6666;
+        font-size: 20px;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    button {
+        margin-top: 20px;
+        padding: 12px 30px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(145deg, #ff0000, #cc0000);
+        color: #fff;
+        cursor: pointer;
+        box-shadow:
+            0 4px 0 #660000,
+            0 0 15px rgba(255,0,0,0.7);
+    }
+
+    button:active {
+        transform: translateY(2px);
+        box-shadow:
+            0 2px 0 #660000,
+            0 0 10px rgba(255,0,0,0.7);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="machine" id="machine">
+
+    <div class="title">SEX MACHINE</div>
+
+    <div class="lights" id="lights">
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+        <div class="light"></div>
+    </div>
+
+    <div class="slots">
+        <div id="s1" class="slot">CHERRY</div>
+        <div id="s2" class="slot">STAR</div>
+        <div id="s3" class="slot">BAR</div>
+    </div>
+
+    <div class="bonus-box">
+        BONUS:
+        <div id="bonus" class="bonus-slot">NONE</div>
+    </div>
+
+    <button id="spinBtn">SPIN</button>
+
+</div>
+
+<script>
+    const symbols = ["SEX", "KISS", "HUG"];
+
+    const bonusSymbols = [
+        "emi", "leon", "69", "samochód", "kiss", "cowgirl", "podłoga", "oral", "sfinks", "cuddling", "plener", "misjonarz", "piesek", "cowgirl", "pająk", "sfinks", "ślimak"];
+
+    const s1 = document.getElementById("s1");
+    const s2 = document.getElementById("s2");
+    const s3 = document.getElementById("s3");
+    const bonus = document.getElementById("bonus");
+    const spinBtn = document.getElementById("spinBtn");
+
+    const lights = document.querySelectorAll(".light");
+
+    function sound(src) {
+        const a = new Audio(src);
+        a.volume = 1.0;
+        return a;
+    }
+
+    const spinSound = "https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-wheel-1930.mp3";
+    const clickSound = "https://assets.mixkit.co/sfx/preview/mixkit-arcade-mechanical-bling-2104.mp3";
+    const stopSound = "https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3";
+    const jackpotSound = "https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3";
+
+    function rand(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    let lightIndex = 0;
+    setInterval(() => {
+        lights.forEach((l, i) => {
+            l.classList.toggle("on", i === lightIndex);
+        });
+        lightIndex = (lightIndex + 1) % lights.length;
+    }, 150);
+
+    function spin() {
+        spinBtn.disabled = true;
+
+        sound(spinSound).play().catch(()=>{});
+
+        let t = 0;
+        let lock1 = false, lock2 = false, lock3 = false;
+
+        let v1, v2, v3;
+
+        const forceWin = Math.random() < 0.45;
+        let winningSymbol = rand(symbols);
+
+        const interval = setInterval(() => {
+
+            sound(clickSound).play().catch(()=>{});
+
+            if (!lock1) { v1 = forceWin ? winningSymbol : rand(symbols); s1.textContent = v1; }
+            if (!lock2) { v2 = forceWin ? winningSymbol : rand(symbols); s2.textContent = v2; }
+            if (!lock3) { v3 = forceWin ? winningSymbol : rand(symbols); s3.textContent = v3; }
+
+            t++;
+
+            if (t === 12) { lock1 = true; sound(stopSound).play().catch(()=>{}); }
+            if (t === 25) { lock2 = true; sound(stopSound).play().catch(()=>{}); }
+            if (t === 40) { lock3 = true; sound(stopSound).play().catch(()=>{}); }
+
+            if (lock1 && lock2 && lock3) {
+                clearInterval(interval);
+                checkWin(v1, v2, v3);
+                spinBtn.disabled = false;
+            }
+
+        }, 80);
+    }
+
+    function checkWin(a, b, c) {
+        [s1, s2, s3].forEach(el => el.classList.remove("highlight"));
+
+        if (a === b && b === c) {
+
+            [s1, s2, s3].forEach(el => el.classList.add("highlight"));
+            sound(jackpotSound).play().catch(()=>{});
+
+            if (a === "SEX") {
+                bonus.textContent = rand(bonusSymbols);
+            } else {
+                bonus.textContent = "NONE";
+            }
+        }
+    }
+
+    spinBtn.addEventListener("click", spin);
+</script>
+
+</body>
+</html>
